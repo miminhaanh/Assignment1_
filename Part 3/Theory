@@ -1,0 +1,40 @@
+Modular Hearing Aid
+
+Mã hóa (Codecs) máy trợ thính bao gồm các thuật toán để đảm bảo truyền tải âm thanh chất lượng cao, giảm tiếng ồn và duy trì độ rõ ràng.
+Một chiếc máy trợ thính có micro, bộ thu, bộ khuếch đại và pin (optional DSP để lọc nhiễu và tiếng ồn)
+
+Quá trình hoạt động:
+
+Thu nhận âm thanh: Microphone thu âm thanh xung quanh và chuyển đổi chúng thành tín hiệu điện.
+Khuếch đại tín hiệu: Bộ khuếch đại tăng cường tín hiệu âm thanh, làm cho âm thanh trở nên rõ ràng và dễ nghe hơn.
+Phát âm thanh: Bộ thu âm thanh (receiver) chuyển tín hiệu điện thành sóng âm thanh và truyền vào tai người dùng.
+Nguồn năng lượng: Toàn bộ hệ thống hoạt động nhờ vào nguồn năng lượng từ pin.
+
+Các yêu cầu về đầu ra của máy trợ thính
+
+Chất lượng âm thanh rõ ràng: Đảm bảo người dùng có thể nghe được những âm thanh quan trọng => khả năng phân biệt giọng nói với các âm thanh nền ( tiếng ồn, nhạc,..)
+Khả năng giảm tiếng ồn: Giảm tiếng ồn nền không mong muốn từ môi trường
+Khả năng khuếch đại động: Điều chỉnh âm thanh để phù hợp với khả năng nghe của người dùng, tránh việc âm thanh quá to hoặc quá nhỏ.
+
+Kĩ thuật 1: Wide Dynamic Range Compression - WDRC
+
+Mục đích: thay đổi âm thanh mà máy trợ thính thu nhận, giúp người sử dụng nghe được những âm thanh nhỏ nhưng cũng giữ cho âm thanh lớn không trở nên quá to
+Một người có thính lực bình thường có thể nghe được một dải âm thanh rất rộng (hay còn gọi là dải động) từ âm thanh nhỏ đến âm thanh rất lớn. Đối với một người có thính lực kém, dải động của họ nhỏ hơn rất nhiều. Máy trợ thính giúp những người có thính lực kém bằng cách khuếch đại âm thanh. Tuy nhiên âm thanh nhỏ ấy cần được khuếch đại vừa phải để không gây khó chịu
+Cơ chế: sử dụng các thuật toán để phân tích tín hiệu âm thanh đầu vào và áp dụng nén vào tín hiệu trong thời gian thực. Tỷ lệ nén, tức là tỷ lệ giữa tín hiệu đầu ra và tín hiệu đầu vào, được điều chỉnh dựa trên cường độ của tín hiệu đầu vào. Ví dụ, khi tín hiệu đầu vào to, tỷ lệ nén sẽ được tăng lên để giảm cường độ tín hiệu đầu ra, trong khi khi tín hiệu đầu vào nhỏ, tỷ lệ nén sẽ giảm xuống để khuếch đại tín hiệu đầu ra
+
+WDRC khuếch đại các âm thanh yếu (40-50 dB SPL), làm giảm các âm thanh quá lớn (85-100 dB SPL)
+Tham khảo: WDRC khuếch đại các âm thanh yếu (40-50 dB SPL), làm giảm các âm thanh quá lớn (85-100 dB SPL)
+Thuật toán WDRC tổng thể được xây dựng trên việc phát hiện biên độ (Peak Detector) và khuếch đại không tuyến tính (Compression Rule)
+Tham số điều khiển chính: compression ratio (CR), attack time (AT), release time (RT), and upper and lower kneepoints (K_{up} and K_{low})
+
+Tỷ lệ nén (Compression Ratio - CR): tỷ lệ giữa mức độ tín hiệu đầu vào và mức độ tín hiệu đầu ra sau khi được nén. Tham số này xác định mức độ giảm hoặc khuếch đại của tín hiệu.
+Attack Time - AT: thời gian cần thiết để hệ thống điều chỉnh tín hiệu khi mức độ âm thanh đột ngột thay đổi. Thời gian tấn công quá nhanh có thể làm mất đi tính tự nhiên của âm thanh, trong khi thời gian tấn công quá chậm có thể khiến các âm thanh lớn vẫn chưa được nén kịp thời.
+Release Time - RT: thời gian cần thiết để hệ thống dừng nén và phục hồi tín hiệu sau khi tín hiệu đầu vào giảm xuống dưới ngưỡng nén. Đây là thời gian mà WDRC cần để giảm nén và trả lại tín hiệu âm thanh về mức bình thường. Thời gian giải phóng quá ngắn có thể gây ra sự thay đổi đột ngột giữa các âm thanh lớn và nhỏ, trong khi thời gian giải phóng quá dài có thể làm cho âm thanh bị mờ và không tự nhiên.
+Ngưỡng cao (K_{up}) và ngưỡng thấp (K_{low}): à các mức âm thanh mà tại đó nén bắt đầu xảy ra hoặc ngừng xảy ra. Khi tín hiệu đầu vào vượt qua ngưỡng cao (K_{up}), hệ thống bắt đầu nén tín hiệu mạnh hơn, và khi tín hiệu giảm xuống dưới ngưỡng thấp (K_{low}), nén sẽ giảm bớt hoặc ngừng hẳn. Các ngưỡng này giúp điều chỉnh mức độ nén cho các âm thanh trong các phạm vi khác nhau. Ngưỡng thấp giúp tăng cường âm thanh nhỏ và ngưỡng cao giúp giảm bớt âm thanh quá lớn, giúp người sử dụng có một trải nghiệm nghe thoải mái hơn.
+
+Kĩ thuật 2: Soft-Knee
+
+là một phương pháp nén âm thanh trong máy trợ thính, giúp điều chỉnh âm thanh một cách mượt mà và tự nhiên, đặc biệt là trong các trường hợp có sự thay đổi lớn về mức độ âm thanh.
+Cách hoạt động: nén âm thanh không đột ngột, mà thay vào đó, nén sẽ bắt đầu một cách từ từ khi mức âm thanh gần đến ngưỡng nhất định, thay vì áp dụng nén cứng ngay lập tức. Điều này giúp tránh hiện tượng "nghe cứng" hoặc "nghe khó chịu" khi mức âm thanh vượt qua ngưỡng nén. Định nghĩa quan trọng:
+Ngưỡng Nén (Kneepoint): Là mức âm thanh khi bắt đầu áp dụng nén. Tuy nhiên, đối với Soft-Knee, thay vì bắt đầu nén ngay lập tức, máy trợ thính sẽ bắt đầu nén từ từ khi âm thanh gần chạm đến ngưỡng này.
+Vùng Chuyển Tiếp (Transition Region): Đây là khu vực mềm mại, nơi âm thanh không bị nén mạnh ngay lập tức. Khi âm thanh gần đạt đến ngưỡng, sự nén sẽ dần dần tăng lên thay vì ngay lập tức, tạo ra sự chuyển tiếp mượt mà.

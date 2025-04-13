@@ -1,0 +1,62 @@
+#Code matlab
+function output = wdrc(audio, fs, CR, AT, RT, K_low, K_up, kneeWidth)
+    % WDRC_SoftKnee_Compression: Combines Soft-Knee Compression and WDRC
+    %   audio     : Input audio signal
+    %   fs        : Sampling frequency (Hz)
+    %   CR        : Compression ratio
+    %   AT        : Attack time (seconds)
+    %   RT        : Release time (seconds)
+    %   K_low     : Lower kneepoint (dB SPL)
+    %   K_up      : Upper kneepoint (dB SPL)
+    %   kneeWidth : Width of soft-knee transition region (dB)
+
+    % Convert audio to mono if stereo
+    if size(audio, 2) > 1
+        audio = mean(audio, 2); % Convert to mono
+    end
+
+    % Initialize
+    N = length(audio);
+    output = zeros(size(audio));
+    env = 0;
+
+    % Attack and release coefficients
+    attack_coeff = exp(-1 / (AT * fs));
+    release_coeff = exp(-1 / (RT * fs));
+
+    for i = 1:N
+        % Envelope detection (peak detection)
+        x = abs(audio(i));
+        if x > env
+            env = attack_coeff * env + (1 - attack_coeff) * x;
+        else
+            env = release_coeff * env + (1 - release_coeff) * x;
+        end
+
+        % Convert to dB SPL
+        level_dB = 20 * log10(env + eps);  % Avoid log(0)
+
+        % Determine gain in dB using Soft-Knee or WDRC
+        delta = level_dB - K_low;
+
+        if delta <= 0
+            % Below lower kneepoint, no compression
+            gain_dB = 0;
+        elseif delta > 0 && delta < kneeWidth
+            % Soft-knee region (smooth transition)
+            gain_dB = (1 - 1 / CR) * ((delta)^2 / (2 * kneeWidth));
+        elseif delta > kneeWidth && level_dB < K_up
+            % WDRC linear compression in the middle region
+            gain_dB = (1 - 1 / CR) * (delta - kneeWidth / 2);
+        else
+            % Above upper kneepoint, apply hard compression
+            gain_dB = (K_up - level_dB) * (1 - 1 / CR);
+        end
+
+        % Convert gain to linear scale
+        gain_lin = 10^(gain_dB / 20);
+
+        % Apply gain to the signal
+        output(i) = gain_lin * audio(i);
+    end
+end
